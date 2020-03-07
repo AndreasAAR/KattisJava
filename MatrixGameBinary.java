@@ -80,7 +80,9 @@ public class MatrixGameBinary {
 
         }
 
+        public void printMatrix(){
 
+        }
 
         private int[][] matrix = new int[MATSIZE][MATSIZE];
 
