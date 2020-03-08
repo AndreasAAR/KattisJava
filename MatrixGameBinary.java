@@ -12,17 +12,19 @@ enum Direction{
 
 public class MatrixGameBinary {
     Scanner scan;
-    int [][] input;
+    int[][] input;
     Direction direction;
     //Important NOTE:
     //The matsize used here assumes a symmetric square matrix!
     final int MATSIZE = 4;
-    public static void main(String[] args){
+
+    public static void main(String[] args) {
+
         MatrixGameBinary mb = new MatrixGameBinary();
     }
 
-    public void setDirection(int input){
-        switch(input){
+    public void setDirection(int input) {
+        switch (input) {
             case 0:
                 direction = Direction.LEFT;
                 break;
@@ -38,10 +40,35 @@ public class MatrixGameBinary {
         }
     }
 
+    public MatrixGameBinary() {
+
+        scan = new Scanner(System.in);
+        input = gameInput();
+        GameBoard game = new GameBoard(input,MATSIZE,direction);
+        game.performShift(direction);
+        game.printMatrix();
+    }
+
+    public int[][] gameInput() {
+        int[][] gameArr = new int[MATSIZE][MATSIZE];
+
+        for (int i = 0; i < MATSIZE; i++) {
+            String inputStr = scan.nextLine();
+            String[] inputArr = inputStr.split(" ");
+
+            for (int j = 0; j < MATSIZE; j++) {
+                gameArr[i][j] = Integer.parseInt(inputArr[j]);
+            }
+        }
+        setDirection(Integer.parseInt((scan.nextLine().trim())));
+        return gameArr;
+    }
+}
+
    /*
    Array to test on
 
-   2 0 0 2
+2 0 0 2
 4 16 8 2
 2 64 32 4
 1024 1024 64 0
@@ -49,45 +76,57 @@ public class MatrixGameBinary {
 
     */
 
-    public MatrixGameBinary(){
-        scan = new Scanner(System.in);
-        input = gameInput();
-        GameBoard game = new GameBoard(input);
-    }
-
-    public int[][] gameInput(){
-        int[][] gameArr = new int [MATSIZE][MATSIZE];
-
-        for(int i = 0; i < MATSIZE ; i++){
-            String inputStr = scan.nextLine();
-            String[] numsStr = inputStr.split(" ");
-            for(int j = 0; j < MATSIZE ; j++){
-                gameArr[i][j] = Integer.parseInt(numsStr[j]);
-            }
-        }
-        setDirection(Integer.parseInt(scan.nextLine()));
-        return gameArr;
-    }
-
-
     class GameBoard {
+
+        Direction direction;
+
+
+       private  int MATSIZE;
+
+        private int[][] matrix = new int[MATSIZE][MATSIZE];
 
         public int[][] getMatrix() {
             return matrix;
         }
 
         public void performShift(Direction direction){
-
+            for(int i = 0; i < MATSIZE; i++){
+                //Basic flattener goes to the right!
+                if(direction == Direction.RIGHT){
+                  int[] flattenedRow = flattenArray(matrix[i]);
+                  matrix[i]= flattenedRow;
+                }
+                //Reversal, flattening and reversal back for left
+                if(direction == Direction.LEFT){
+                    int[] reversed = reverseArray(matrix[i]);
+                    int[] flattenedRow = flattenArray(reversed);
+                    matrix[i]= reverseArray(flattenedRow);
+                }
+                if(direction == Direction.DOWN){
+                    int[] currCol = getCol(matrix,i);
+                    setCol(matrix,i,flattenArray(currCol));
+                }
+                if(direction == Direction.UP){
+                    int[] currCol = flattenArray(reverseArray(getCol(matrix,i)));
+                    setCol(matrix,i,reverseArray(currCol));
+                }
+            }
         }
+
+
 
         public void printMatrix(){
-
+            for(int i = 0; i < matrix.length; i++){
+               printArr(matrix[i]);
+            }
         }
 
-        private int[][] matrix = new int[MATSIZE][MATSIZE];
 
-        public GameBoard(int[][] matrix){
+
+        public GameBoard(int[][] matrix, int MATSIZE,Direction direction){
             this.matrix = matrix;
+            this.MATSIZE = MATSIZE;
+            this.direction = direction;
         }
 
         public int[] getCol(int[][] matrix, int colNum){
@@ -108,35 +147,38 @@ public class MatrixGameBinary {
         }
 
         public void printArr(int[] resultArr){
-            for(int i = 0; i < resultArr.length;i++)
-                System.out.println(resultArr[i]);
+            for(int i = 0; i < resultArr.length;i++){
+                System.out.print(resultArr[i]+ " " );
+            }
+            System.out.println();
         }
 
         public int[] flattenArray(int[] inputArray){
             //We decouple the array with clone.
             int[] array = inputArray.clone();
 
-            while(needsShuffling(array)){
-                //Arrays merge liek this
-                // 0 2 2 0 2 = 0 0 0 2 4 ->
-                for(int i = MATSIZE-2; i > -1; i--){
-                    //If we are zero do nothing
-                    if(array[i] != 0){
-                        //If position in front is zero
-                        if(array[i+1] == 0){
-                            array[i+1] =  array[i];
-                            array[i] = 0;
-                        }
-                        //If array in front is like us
-                        if(array[i] == array[i+1]){
-                            array[i+1] *= 2;
-                            array[i] = 0;
-                        }
+            //Looks backward for each position, stops at first
+            // "Meld" with same val, or "front shuffle".
+            // Only one(rightmost) pair gets to combine if u have 2,2,2,2
+
+            for(int i = array.length-1; i>-1; i--){
+                boolean breakInner = false;
+                for(int j = i-1; j > -1 && !breakInner;j--){
+                    //When j matches
+                    if(array[j] == array[i] && array[i] != 0){
+                        array[i] *=2;
+                        array[j] = 0;
+                        breakInner = true;
+                    }//When i is zero, and encounter anything non zero
+                    else if (array[i] == 0 && array[j] != 0 && !breakInner){
+                        array[i] = array[j];
+                        array[j] = 0;
+                    }else if(array[i] != 0 && array[j] != 0 && array[i] != array[j]&& !breakInner){
+                        breakInner = true;
                     }
                 }
-
             }
-            //Check if ther
+
             return array;
         }
         private boolean needsShuffling(int[] array){
@@ -156,9 +198,9 @@ public class MatrixGameBinary {
             }
             return needShuffling;
         }
-    }
+
     //Reverses lists!
-    public int[] reverseList(int[] arr){
+    public int[] reverseArray(int[] arr){
         int[] flipDlist = new int[MATSIZE];
         int flipPos = 0;
         for(int i = arr.length-1 ; i > -1; i--){
@@ -169,6 +211,7 @@ public class MatrixGameBinary {
     }
 
 }
+
 
 
 
