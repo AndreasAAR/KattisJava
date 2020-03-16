@@ -1,8 +1,15 @@
 import java.util.Scanner;
 
+/*
+Andreas Ährlund-Richter 2020
+Problem that simulates the game 2048
+https://open.kattis.com/problems/2048
+ */
+
 //TODO
 //Make this into an actual terminal-based 2048, and a visual one!
 //Also, make the visual one web-based with high-score in mongodb or mysql if pos!
+// Maybe use a Java Javascript-focused EE instead of Swing/Java-Fx
 
 enum Direction{
     // 0, 1, 2, or 3 that denotes a left, up, right,
@@ -11,6 +18,7 @@ enum Direction{
 }
 
 public class MatrixGameBinary {
+
     Scanner scan;
     int[][] input;
     Direction direction;
